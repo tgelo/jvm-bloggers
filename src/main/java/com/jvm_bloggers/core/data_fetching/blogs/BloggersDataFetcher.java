@@ -1,10 +1,8 @@
 package com.jvm_bloggers.core.data_fetching.blogs;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.routing.RoundRobinPool;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jvm_bloggers.core.data_fetching.blogs.domain.BlogType;
+import com.jvm_bloggers.core.data_fetching.blogs.json_data.BloggersData;
 import com.jvm_bloggers.core.metadata.Metadata;
 import com.jvm_bloggers.core.metadata.MetadataKeys;
 import com.jvm_bloggers.core.metadata.MetadataRepository;
@@ -14,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -27,27 +26,26 @@ public class BloggersDataFetcher {
     private final Optional<URL> bloggersUrlOptional;
     private final Optional<URL> companiesUrlOptional;
     private final Optional<URL> videosUrlOptional;
+    private final BloggersDataUpdater bloggersDataUpdater;
+    private final ObjectMapper mapper = new ObjectMapper();
     private final MetadataRepository metadataRepository;
     private final NowProvider nowProvider;
-    private final ActorRef bloggerDataFetcherActor;
-
+    private final PreventConcurrentExecutionSafeguard concurrentExecutionSafeguard
+        = new PreventConcurrentExecutionSafeguard();
+    
     @Autowired
     public BloggersDataFetcher(@Value("${bloggers.data.file.url}") String bloggersDataUrlString,
                                @Value("${companies.data.file.url}") String companiesDataUrlString,
                                @Value("${youtube.data.file.url}") String videosDataUrlString,
-                               ActorSystem actorSystem,
                                BloggersDataUpdater bloggersDataUpdater,
                                MetadataRepository metadataRepository,
                                NowProvider nowProvider) {
         bloggersUrlOptional = convertToUrl(bloggersDataUrlString);
         companiesUrlOptional = convertToUrl(companiesDataUrlString);
         videosUrlOptional = convertToUrl(videosDataUrlString);
+        this.bloggersDataUpdater = bloggersDataUpdater;
         this.metadataRepository = metadataRepository;
         this.nowProvider = nowProvider;
-        bloggerDataFetcherActor =
-            actorSystem.actorOf(new RoundRobinPool(3)
-                    .props(BloggersDataFetcherActor.props(bloggersDataUpdater)),
-                "bloggers-data-fetcher");
     }
 
     private Optional<URL> convertToUrl(String urlString) {
@@ -60,18 +58,41 @@ public class BloggersDataFetcher {
     }
 
     public void refreshData() {
-        bloggerDataFetcherActor
-            .tell(new BloggersUrlWithType(bloggersUrlOptional, BlogType.PERSONAL),
-                ActorRef.noSender());
-        bloggerDataFetcherActor
-            .tell(new BloggersUrlWithType(companiesUrlOptional, BlogType.COMPANY),
-                ActorRef.noSender());
-        bloggerDataFetcherActor
-            .tell(new BloggersUrlWithType(videosUrlOptional, BlogType.VIDEOS), ActorRef.noSender());
+        concurrentExecutionSafeguard.preventConcurrentExecution(() -> startFetchingProcess());
+    }
+
+    @Async("singleThreadExecutor")
+    public void refreshDataAsynchronously() {
+        refreshData();
+    }
+
+    private Void startFetchingProcess() {
+        refreshBloggersDataFor(bloggersUrlOptional, BlogType.PERSONAL);
+        refreshBloggersDataFor(companiesUrlOptional, BlogType.COMPANY);
+        refreshBloggersDataFor(videosUrlOptional, BlogType.VIDEOS);
 
         final Metadata dateOfLastFetch = metadataRepository
             .findByName(MetadataKeys.DATE_OF_LAST_FETCHING_BLOGGERS);
         dateOfLastFetch.setValue(nowProvider.now().toString());
         metadataRepository.save(dateOfLastFetch);
+        return null;
+    }
+
+    private void refreshBloggersDataFor(Optional<URL> blogsDataUrl, BlogType blogType) {
+        if (blogsDataUrl.isPresent()) {
+            try {
+                BloggersData bloggers = mapper.readValue(blogsDataUrl.get(), BloggersData.class);
+                bloggers.getBloggers().stream().forEach(it -> it.setBlogType(blogType));
+                bloggersDataUpdater.updateData(bloggers);
+            } catch (Exception exception) {
+                log.error("Exception during parse process for {}", blogType, exception);
+            }
+        } else {
+            log.warn("No valid URL specified for {}. Skipping.", blogType);
+        }
+    }
+
+    public boolean isFetchingProcessInProgress() {
+        return concurrentExecutionSafeguard.isExecuting();
     }
 }

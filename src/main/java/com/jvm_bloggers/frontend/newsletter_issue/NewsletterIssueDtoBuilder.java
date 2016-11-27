@@ -1,9 +1,11 @@
 package com.jvm_bloggers.frontend.newsletter_issue;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.jvm_bloggers.core.blogpost_redirect.RedirectLinkGenerator;
+import com.jvm_bloggers.core.blogpost_redirect.LinkGenerator;
 import com.jvm_bloggers.core.data_fetching.blog_posts.domain.BlogPost;
 import com.jvm_bloggers.core.newsletter_issues.domain.NewsletterIssue;
+
+import com.jvm_bloggers.core.newsletter_issues.domain.NewsletterIssueBaseData;
 
 import lombok.AllArgsConstructor;
 
@@ -19,7 +21,7 @@ import static com.jvm_bloggers.frontend.newsletter_issue.BlogDto.fromBlogs;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class NewsletterIssueDtoBuilder {
 
-    private final RedirectLinkGenerator redirectLinkGenerator;
+    private final LinkGenerator linkGenerator;
 
     public NewsletterIssueDto build(NewsletterIssue issue) {
         return NewsletterIssueDto.builder()
@@ -32,6 +34,13 @@ public class NewsletterIssueDtoBuilder {
             .build();
     }
 
+    public NewsletterIssueDto build(NewsletterIssueBaseData issue) {
+        return NewsletterIssueDto.builder()
+            .number(issue.getIssueNumber())
+            .publishedDate(issue.getPublishedDate())
+            .build();
+    }
+
     private List<BlogPostDto> fromBlogPosts(List<BlogPost> blogPosts) {
         return blogPosts.stream()
             .map(this::fromBlogPost)
@@ -41,7 +50,7 @@ public class NewsletterIssueDtoBuilder {
     @VisibleForTesting
     BlogPostDto fromBlogPost(BlogPost blogPost) {
         return BlogPostDto.builder()
-            .url(redirectLinkGenerator.generateLinkFor(blogPost.getUid()))
+            .url(linkGenerator.generateRedirectLinkFor(blogPost.getUid()))
             .title(blogPost.getTitle())
             .authorName(blogPost.getBlog().getAuthor())
             .authorTwitterHandle(blogPost.getBlog().getTwitter())

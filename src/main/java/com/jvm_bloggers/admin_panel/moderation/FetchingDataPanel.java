@@ -38,29 +38,37 @@ public class FetchingDataPanel extends Panel {
         add(createFetchBloggersDataButton(feedback));
     }
 
-    private AjaxLink createFetchBlogPostsDataButton(CustomFeedbackPanel feedback) {
-        return new AjaxLink("fetchBlogPostsData") {
+    private AjaxLink<Void> createFetchBlogPostsDataButton(CustomFeedbackPanel feedback) {
+        return new AjaxLink<Void>("fetchBlogPostsData") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 log.debug("Fetching blog posts data clicked");
-                blogPostsFetcher.refreshPosts();
-                getSession().success("Fetching blog posts data started");
+                if (!blogPostsFetcher.isFetchingProcessInProgress()) {
+                    blogPostsFetcher.refreshPostsAsynchronously();
+                    getSession().success("Fetching blog posts data started");
+                } else {
+                    getSession().error("Fetching blog posts data already in progress");
+                }
 
                 target.add(feedback);
             }
         };
     }
 
-    private AjaxLink createFetchBloggersDataButton(CustomFeedbackPanel feedback) {
+    private AjaxLink<Void> createFetchBloggersDataButton(CustomFeedbackPanel feedback) {
 
-        return new AjaxLink("fetchBloggersData") {
+        return new AjaxLink<Void>("fetchBloggersData") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 log.debug("Fetching bloggers data clicked");
-                bloggersDataFetcher.refreshData();
-                getSession().success("Fetching bloggers data started");
+                if (!bloggersDataFetcher.isFetchingProcessInProgress()) {
+                    bloggersDataFetcher.refreshDataAsynchronously();
+                    getSession().success("Fetching bloggers data started");
+                } else {
+                    getSession().error("Fetching bloggers data already in progress");
+                }
 
                 target.add(feedback);
             }

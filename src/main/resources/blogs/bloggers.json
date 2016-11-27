@@ -816,8 +816,8 @@
     {
       "jsonId": 143,
       "name": "Maciej Aniserowicz",
-      "rss": "http://feeds.feedburner.com/devtalk_pl?format=xml",
-      "twitter": "@devtalkpl"
+      "rss": "http://devstyle.pl/feed/",
+      "twitter": "@maniserowicz"
     },
     {
       "jsonId": 144,
@@ -853,6 +853,12 @@
       "name": "Marek Berkan",
       "rss": "http://www.mberkan.pl/feed/",
       "twitter": "@MarekBerkan"
+    },
+    {
+      "jsonId": 150,
+      "name": "Mateusz Rasiński",
+      "rss": "https://mateuszrasinski.github.io/feed.xml",
+      "twitter": "@MateuszRasinski"
     }
 
   ]
