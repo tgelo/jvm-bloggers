@@ -3,7 +3,7 @@ package com.jvm_bloggers.core.rss;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.jvm_bloggers.core.blogpost_redirect.RedirectLinkGenerator;
+import com.jvm_bloggers.core.blogpost_redirect.LinkGenerator;
 import com.jvm_bloggers.core.data_fetching.blog_posts.domain.BlogPost;
 import com.jvm_bloggers.core.data_fetching.blog_posts.domain.BlogPostRepository;
 import com.jvm_bloggers.core.utils.Validators;
@@ -58,11 +58,9 @@ public class AggregatedRssFeedProducer {
     static final Set<String> INCLUDE_ALL_AUTHORS_SET = ImmutableSet.of(StringUtils.EMPTY);
 
     private static final String SELF_REL = "self";
-    private static final String UTM_MEDIUM = "RSS";
-    private static final String UTM_CAMPAIGN = "RSS";
     private final BlogPostRepository blogPostRepository;
     private final NowProvider nowProvider;
-    private final RedirectLinkGenerator linkGenerator;
+    private final LinkGenerator linkGenerator;
 
     /**
      * Generates aggregated RSS feed for all or given <tt>limit</tt> of approved blog posts.
@@ -82,8 +80,7 @@ public class AggregatedRssFeedProducer {
     @Cacheable
     public SyndFeed getRss(String feedUrl, int limit, Set<String> excludedAuthors) {
 
-        Preconditions.checkArgument(
-            StringUtils.isNotBlank(feedUrl), "feedUrl parameter cannot be blank");
+        Preconditions.checkArgument(isNotBlank(feedUrl), "feedUrl parameter cannot be blank");
 
         StopWatch stopWatch = null;
         if (log.isDebugEnabled()) {
@@ -97,7 +94,7 @@ public class AggregatedRssFeedProducer {
             excludedAuthors = INCLUDE_ALL_AUTHORS_SET;
         }
         final List<BlogPost> approvedPosts =
-            blogPostRepository.findByApprovedTrueAndBlogAuthorNotInOrderByPublishedDateDesc(
+            blogPostRepository.findByApprovedTrueAndBlogAuthorNotInOrderByApprovedDateDesc(
                 pageRequest, excludedAuthors
                 );
         final List<SyndEntry> feedItems = approvedPosts.stream()
@@ -117,7 +114,7 @@ public class AggregatedRssFeedProducer {
     private SyndEntry toRssEntry(BlogPost post) {
         final SyndEntry rssEntry = new SyndEntryImpl();
         rssEntry.setTitle(post.getTitle());
-        rssEntry.setLink(linkGenerator.generateLinkFor(post.getUid()));
+        rssEntry.setLink(linkGenerator.generateRedirectLinkFor(post.getUid()));
         rssEntry.setAuthor(post.getBlog().getAuthor());
         rssEntry.setPublishedDate(DateTimeUtilities.toDate(post.getPublishedDate()));
         rssEntry.setUri(post.getUid());

@@ -8,13 +8,9 @@ import com.jvm_bloggers.core.metadata.Metadata;
 import com.jvm_bloggers.core.metadata.MetadataKeys;
 import com.jvm_bloggers.core.metadata.MetadataRepository;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
-import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -26,9 +22,7 @@ import org.wicketstuff.annotation.mount.MountPath;
 import java.util.List;
 
 
-@Slf4j
 @MountPath("mailing-template")
-@AuthorizeInstantiation(Roles.ADMIN)
 public class MailingPage extends AbstractMailingPage {
 
     public static final String WYSIWYG_ID = "wysiwyg";
