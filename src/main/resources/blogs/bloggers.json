@@ -3,7 +3,7 @@
     {
       "jsonId": 1,
       "name": "Tomasz Dziurko",
-      "rss": "http://tomaszdziurko.pl/feed/",
+      "rss": "http://tomaszdziurko.com/feed/",
       "twitter": "@TomaszDziurko"
     },
     {
@@ -676,7 +676,7 @@
     {
       "jsonId": 119,
       "name": "Tomek (TJ) Janczewski",
-      "rss": "http://www.3pio.pl/?tempskin=_atom",
+      "rss": "http://3pio.pl/atom/",
       "twitter": "@tjancz"
     },
     {
@@ -760,7 +760,8 @@
     {
       "jsonId": 133,
       "name": "Krzysztof Góralski",
-      "rss": "https://krzysztofgoralski.wordpress.com/feed/"
+      "rss": "https://kgoralski.github.io/index.xml",
+      "twitter": "@k_goralski"
     },
     {
       "jsonId": 134,
@@ -870,6 +871,12 @@
       "name": "Grzegorz Ziemoński",
       "rss": "http://tidyjava.com/feed/",
       "twitter": "@grzegorztj"
+    },
+    {
+      "jsonId": 153,
+      "name": "Bartek Kalinka",
+      "rss": "https://bartekkalinka.github.io/feed.xml",
+      "twitter": "@bartkali"      
     }
   ]
 }
