@@ -1,8 +1,8 @@
 package com.jvm_bloggers.utils
 
+import com.jvm_bloggers.SpringContextAwareSpecification
 import org.jasypt.encryption.StringEncryptor
 import org.springframework.beans.factory.annotation.Autowired
-import com.jvm_bloggers.SpringContextAwareSpecification
 
 /**
  * This test is a helper to encrypt properties we don't want to put in the repo as a plain text.
@@ -25,11 +25,12 @@ class JasyptShouldEncryptPropertiesSpec extends SpringContextAwareSpecification 
 
     def "Should encrypt and decrypt given value"() {
         given:
-            String textToEncrypt = "textToEncrypt"
+        String textToEncrypt = "textToEncrypt"
+
         when:
-            String encrypted = encryptor.encrypt(textToEncrypt);
-            String decryptedText = encryptor.decrypt(encrypted);
-            println """
+        String encrypted = encryptor.encrypt(textToEncrypt);
+        String decryptedText = encryptor.decrypt(encrypted);
+        println """
                 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
                 Encrypting...
                     original text = $textToEncrypt
@@ -37,7 +38,7 @@ class JasyptShouldEncryptPropertiesSpec extends SpringContextAwareSpecification 
                 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
                 """
         then:
-            textToEncrypt == decryptedText
+        textToEncrypt == decryptedText
     }
 
 

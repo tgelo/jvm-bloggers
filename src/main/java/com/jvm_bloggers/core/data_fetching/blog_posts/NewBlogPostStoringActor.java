@@ -3,16 +3,13 @@ package com.jvm_bloggers.core.data_fetching.blog_posts;
 import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
-
-import com.jvm_bloggers.core.data_fetching.blog_posts.domain.BlogPost;
-import com.jvm_bloggers.core.data_fetching.blog_posts.domain.BlogPostRepository;
 import com.jvm_bloggers.core.utils.Validators;
+import com.jvm_bloggers.entities.blog_post.BlogPost;
+import com.jvm_bloggers.entities.blog_post.BlogPostRepository;
 import com.jvm_bloggers.utils.DateTimeUtilities;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -33,7 +30,7 @@ public class NewBlogPostStoringActor extends AbstractActor {
                 if (Validators.isUrlValid(rssEntry.getRssEntry().getLink())) {
                     BlogPost blogPost = blogPostRepository
                         .findByUrl(rssEntry.getRssEntry().getLink())
-                        .orElseGet(() -> createBlogPost(rssEntry));
+                        .getOrElse(() -> createBlogPost(rssEntry));
                     updateDescription(blogPost, rssEntry.getRssEntry().getDescription());
                     blogPostRepository.save(blogPost);
                 } else {
@@ -49,9 +46,9 @@ public class NewBlogPostStoringActor extends AbstractActor {
 
     public static Props props(BlogPostRepository blogPostRepository,
                               BlogPostFactory blogPostFactory) {
-        return Props.create(NewBlogPostStoringActor.class, () -> {
-                return new NewBlogPostStoringActor(blogPostRepository, blogPostFactory);
-            }
+        return Props.create(
+            NewBlogPostStoringActor.class,
+            () -> new NewBlogPostStoringActor(blogPostRepository, blogPostFactory)
         );
     }
 

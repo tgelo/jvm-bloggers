@@ -1,18 +1,14 @@
 package com.jvm_bloggers.core.mailing.sender;
 
 
-import com.jvm_bloggers.TimeConstants;
-import com.jvm_bloggers.core.mailing.domain.Email;
-import com.jvm_bloggers.core.mailing.domain.EmailRepository;
+import com.jvm_bloggers.entities.email.Email;
+import com.jvm_bloggers.entities.email.EmailRepository;
 import com.jvm_bloggers.utils.NowProvider;
-
+import javaslang.control.Option;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 @Slf4j
@@ -33,11 +29,11 @@ public class EmailSendingScheduler {
         this.nowProvider = nowProvider;
     }
 
-    @Scheduled(fixedDelay = TimeConstants.FOUR_MINUTES)
+    @Scheduled(fixedDelayString = "${scheduler.send-email}")
     public void sendOneEmail() {
-        Optional<Email> notSentEmail = emailRepository.findFirstBySentDateNull();
+        Option<Email> notSentEmail = emailRepository.findFirstBySentDateNull();
 
-        notSentEmail.ifPresent(email -> {
+        notSentEmail.forEach(email -> {
             MailSender.EmailSendingStatus status = mailSender.sendEmail(
                 email.getFromAddress(),
                 email.getToAddress(),
